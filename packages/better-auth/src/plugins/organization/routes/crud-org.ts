@@ -392,11 +392,12 @@ export const deleteOrganization = createAuthEndpoint(
 			});
 		}
 		const adapter = getOrgAdapter(ctx.context, ctx.context.orgOptions);
+		const isAdmin = ((session.user as UserWithRole).role === "admin")
 		const member = await adapter.findMemberByOrgId({
 			userId: session.user.id,
 			organizationId: organizationId,
 		});
-		if (!member) {
+		if (!member && !isAdmin) {
 			return ctx.json(null, {
 				status: 400,
 				body: {
@@ -405,18 +406,20 @@ export const deleteOrganization = createAuthEndpoint(
 				},
 			});
 		}
-		const canDeleteOrg = hasPermission({
-			role: member.role,
-			permissions: {
-				organization: ["delete"],
-			},
-			options: ctx.context.orgOptions,
-		});
-		if (!canDeleteOrg) {
-			throw new APIError("FORBIDDEN", {
-				message:
-					ORGANIZATION_ERROR_CODES.YOU_ARE_NOT_ALLOWED_TO_DELETE_THIS_ORGANIZATION,
+		if (member && !isAdmin) {
+			const canDeleteOrg = hasPermission({
+				role: member.role,
+				permissions: {
+					organization: ["delete"],
+				},
+				options: ctx.context.orgOptions,
 			});
+			if (!canDeleteOrg) {
+				throw new APIError("FORBIDDEN", {
+					message:
+						ORGANIZATION_ERROR_CODES.YOU_ARE_NOT_ALLOWED_TO_DELETE_THIS_ORGANIZATION,
+				});
+			}
 		}
 		if (organizationId === session.session.activeOrganizationId) {
 			/**

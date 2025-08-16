@@ -1,6 +1,6 @@
 {
   "name": "@la.machine.a.idees/better-auth",
-  "version": "1.2.7-my-patch-1.0",
+  "version": "1.2.7-my-patch-1.1",
   "publishConfig": {
     "access": "public"
   },

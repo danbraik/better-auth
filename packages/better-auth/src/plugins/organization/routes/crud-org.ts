@@ -503,11 +503,10 @@ export const getFullOrganization = <O extends OrganizationOptions>() =>
 				isSlug: !!ctx.query?.organizationSlug,
 				includeTeams: ctx.context.orgOptions.teams?.enabled,
 			});
-			console.dir(session.user, { depth: null });
-			const isMember = (session.user.role === "admin") || organization?.members.find(
+			const isAdminOrMember = (session.user.role === "admin") || organization?.members.find(
 				(member) => member.userId === session.user.id,
 			);
-			if (!isMember) {
+			if (!isAdminOrMember) {
 				throw new APIError("FORBIDDEN", {
 					message:
 						ORGANIZATION_ERROR_CODES.USER_IS_NOT_A_MEMBER_OF_THE_ORGANIZATION,

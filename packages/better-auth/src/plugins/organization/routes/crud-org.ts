@@ -15,6 +15,7 @@ import type {
 	Team,
 } from "../schema";
 import { hasPermission } from "../has-permission";
+import type { UserWithRole } from "../../admin";
 
 export const createOrganization = createAuthEndpoint(
 	"/organization/create",
@@ -310,28 +311,31 @@ export const updateOrganization = createAuthEndpoint(
 			});
 		}
 		const adapter = getOrgAdapter(ctx.context, ctx.context.orgOptions);
+		const isAdmin = ((session.user as UserWithRole).role === "admin")
 		const member = await adapter.findMemberByOrgId({
 			userId: session.user.id,
 			organizationId: organizationId,
 		});
-		if (!member) {
+		if (!member && !isAdmin) {
 			throw new APIError("BAD_REQUEST", {
 				message:
 					ORGANIZATION_ERROR_CODES.USER_IS_NOT_A_MEMBER_OF_THE_ORGANIZATION,
 			});
 		}
-		const canUpdateOrg = hasPermission({
-			permissions: {
-				organization: ["update"],
-			},
-			role: member.role,
-			options: ctx.context.orgOptions,
-		});
-		if (!canUpdateOrg) {
-			throw new APIError("FORBIDDEN", {
-				message:
-					ORGANIZATION_ERROR_CODES.YOU_ARE_NOT_ALLOWED_TO_UPDATE_THIS_ORGANIZATION,
+		if (member && !isAdmin) {
+			const canUpdateOrg = hasPermission({
+				permissions: {
+					organization: ["update"],
+				},
+				role: member.role,
+				options: ctx.context.orgOptions,
 			});
+			if (!canUpdateOrg) {
+				throw new APIError("FORBIDDEN", {
+					message:
+						ORGANIZATION_ERROR_CODES.YOU_ARE_NOT_ALLOWED_TO_UPDATE_THIS_ORGANIZATION,
+				});
+			}
 		}
 		const updatedOrg = await adapter.updateOrganization(
 			organizationId,

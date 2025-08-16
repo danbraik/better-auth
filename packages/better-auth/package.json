@@ -1,6 +1,9 @@
 {
-  "name": "better-auth",
+  "name": "@la.machine.a.idees/better-auth",
   "version": "1.2.7-my-patch-1",
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "The most comprehensive authentication library for TypeScript.",
   "type": "module",
   "repository": {

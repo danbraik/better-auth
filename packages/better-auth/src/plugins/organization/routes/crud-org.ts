@@ -503,7 +503,7 @@ export const getFullOrganization = <O extends OrganizationOptions>() =>
 				isSlug: !!ctx.query?.organizationSlug,
 				includeTeams: ctx.context.orgOptions.teams?.enabled,
 			});
-			const isMember = organization?.members.find(
+			const isMember = (session.user.role === "admin") || organization?.members.find(
 				(member) => member.userId === session.user.id,
 			);
 			if (!isMember) {
